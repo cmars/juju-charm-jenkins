@@ -1,65 +1,78 @@
 # Overview
 
-Describe the intended usage of this charm and anything unique about how this
-charm relates to others here.
+This charm (along with its companion, jenkins-slave) provides an easy way to deploy Jenkins on Ubuntu server and scale out Jenkins slaves.
 
-This README will be displayed in the Charm Store, it should be either Markdown
-or RST. Ideal READMEs include instructions on how to use the charm, expected
-usage, and charm features that your audience might be interested in. For an
-example of a well written README check out Hadoop:
-http://jujucharms.com/charms/precise/hadoop
-
-Use this as a Markdown reference if you need help with the formatting of this
-README: http://askubuntu.com/editing-help
-
-This charm provides [service][]. Add a description here of what the service
-itself actually does.
-
-Also remember to check the [icon guidelines][] so that your charm looks good
-in the Juju GUI.
+This charm provides a Jenkins Server which can be accessed, after exposing, on http://<master>:8080.
 
 # Usage
 
-Step by step instructions on using the charm:
+To deploy Jenkins server you will also need to deploy the jenkins-slave charm. This can be done as follows:
 
-juju deploy servicename
+    juju deploy jenkins
+    juju deploy -n 5 jenkins-slave
+    juju add-relation jenkins jenkins-slave
 
-and so on. If you're providing a web service or something that the end user
-needs to go to, tell them here, especially if you're deploying a service that
-might listen to a non-default port.
+The default password for the 'admin' account will be auto-generated.
 
-You can then browse to http://ip-address to configure the service.
+You can set it using:
+
+    juju set jenkins password=mypassword
+
+Always change it this way - this account is used by the charm to manage slave configuration.
+
+Then feel free to expose your Jenkins master:
+
+    juju expose jenkins
+
+The Jenkins UI will be accessible on http://<master>:8080
 
 ## Scale out Usage
 
-If the charm has any recommendations for running at scale, outline them in
-examples here. For example if you have a memcached relation that improves
-performance, mention it here.
+The main method to use the Jenkins service at scale is to add units to the jenkins-slave, as illustrated in the example usage:
 
-## Known Limitations and Issues
+    juju deploy -n 5 jenkins-slave
 
-This not only helps users but gives people a place to start if they want to help
-you add features to your charm.
+Here the "-n 5" is adding 5 additional units (instances) to the jenkins-slave. Of course that "5" can be as large as you wish or you cloud provider supports. Additional information on scaling services with add-unit can be found at [Juju Scaling Docs](https://juju.ubuntu.com/docs/charms-scaling.html).
+
 
 # Configuration
 
-The configuration options will be listed on the charm store, however If you're
-making assumptions or opinionated decisions in the charm (like setting a default
-administrator password), you should detail that here so the user knows how to
-change it immediately, etc.
+You have already seen the password configuration in the "Usage" section. Some other interesting config options are plugins and release. You can add config options via the command line with juju set or via a config file. More information on Juju config is at [Juju Config Docs](https://juju.ubuntu.com/docs/charms-config.html).
 
-# Contact Information
+## Plugin config example
 
-Though this will be listed in the charm store itself don't assume a user will
-know that, so include that information here:
+    juju set jenkins plugins=htmlpublisher view-job-filters bazaar git
 
-## Upstream Project Name
+## Release config example
 
-  - Upstream website
-  - Upstream bug tracker
-  - Upstream mailing list or contact information
-  - Feel free to add things if it's useful for users
+    juju set jenkins release=trunk
 
+You could also set these config options via a config.yaml on jenkins deploy. For example your config.yaml could look like
 
-[service]: http://example.com
-[icon guidelines]: https://jujucharms.com/docs/stable/authors-charm-icon
+    jenkins:
+      plugins: htmlpublisher view-job-filters bazaar git 
+      release: trunk 
+
+You would then deploy jenkins with your config such as:
+
+    juju deploy --config config.yaml jenkins
+ 
+## Extending this charm
+
+If you wish to perform custom configuration of either the master
+or slave services, you can branch this charm and add install hooks
+into hooks/install.d.
+
+These will be executed when the main install, config-changed or
+upgrade-charm hooks are executed (as the config-changed and
+upgrade-charm hooks just call install)..
+
+Additional hooks are executed in the context of the install hook
+so may use any variables which are defined in this hook.
+
+# Jenkins Project Information 
+
+- [Jenkins Project Website](http://jenkins-ci.org/)
+- [Jenkins Bug Tracker](https://wiki.jenkins-ci.org/display/JENKINS/Issue+Tracking)
+- [Jenkins mailing lists](http://jenkins-ci.org/content/mailing-lists)
+- [Jenkins Plugins](https://wiki.jenkins-ci.org/display/JENKINS/Plugins)
