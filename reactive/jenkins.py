@@ -53,6 +53,7 @@ def configure_jenkins():
         # Generate a random one for security. User can then override using juju
         # set.
         admin_passwd = subprocess.check_output(['pwgen', '-N1', '15'])
+        # Decode to UTF-8 to write to file
         admin_passwd = admin_passwd.strip().decode()
 
     passwd_file = os.path.join(JENKINS_HOME, '.admin_password')
@@ -67,6 +68,8 @@ def configure_jenkins():
 
     # Generate Salt and Hash Password for Jenkins
     salt = subprocess.check_output(['pwgen', '-N1', '6']).strip()
+    # Re-encode for type compat in hashlib.sha256 below
+    admin_passwd = admin_passwd.encode('utf-8')
     csum = hashlib.sha256("%s{%s}".encode('utf-8') %
                           (admin_passwd, salt)).hexdigest()
     salty_password = "%s:%s" % (salt, csum)
