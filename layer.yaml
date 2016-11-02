@@ -1,0 +1,16 @@
+includes:
+  - 'layer:basic'
+  - 'layer:apt'
+options:
+  apt:
+    packages:
+      - jenkins
+      - default-jre-headless
+      - pwgen
+      - python-jenkins
+      - git
+      - gcc
+      - make
+      - bzr
+      - jenkins
+repo: "git@github.com:jamesbeedy/juju-charm-jenkins.git"
